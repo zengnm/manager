@@ -1,0 +1,128 @@
+#!/bin/bash
+
+#从git远程仓库中获取代码
+#此过程中,需要输入工程名,用以补全克隆的url
+GET_LATEST_CODE_GIT()
+{
+    echo "请输入工程名称,用于填充git clone的URL:"
+        read ProjectName
+        git clone http://source.jd.com/app/${ProjectName}.git source_home
+        if [ $? != 0 ]; then
+            echo "git clone 错误!"
+            exit 1
+    fi
+}
+
+#从svn远程仓库中检出代码
+GET_LATEST_CODE_SVN()
+{
+    echo "请输入svn 远程仓库地址:"
+    export LC_ALL=C
+    read SVN_URL
+    svn checkout $SVN_URL source_home
+    if [ $? != 0 ]; then
+        echo "svn checkout 错误!"
+        exit 1
+    fi
+}
+
+
+
+#在3s内确定切换,则切换并更新选择的分支;否则直接跳过
+CHECKOUT()
+{
+    head=$(< ".git/HEAD")
+    if [[ $head = ref:\ refs/heads/* ]]; then
+        current_branch=${head#*/*/}
+        echo "当前分支名: $current_branch"
+    fi
+    read -t 3 -ep "是否切换分支?(yes/no)" YES
+    case $YES in
+     y|Y|yes|YES)
+        select branch in `git branch -r|grep -v "HEAD" |sed "s# origin/##g"`;do
+            case $branch in "")echo Re-select;; *) break;; esac
+        done
+        git checkout $branch && git pull >/dev/null
+        echo "成功切换到分支: $branch"
+        ;;
+    *)
+        ;;
+    esac
+}
+
+#获取代码
+GET_SOURCE()
+{
+    if [[ -d source_home/.git ]];then
+        git pull
+        CHECKOUT
+    elif [[ -d source_home/.svn ]];then
+        export LC_ALL=C
+        svn update
+    else
+        cd /
+        /bin/rm -rf source_home
+        echo "请选择代码下载工具:"
+        select tool in "git" "svn";do
+            case $tool in "") echo Re-select;;*)break;;esac
+        done
+        if [[ $tool == "git" ]];then
+            GET_LATEST_CODE_GIT
+            cd source_home
+            CHECKOUT
+        else
+            GET_LATEST_CODE_SVN
+            cd source_home
+        fi
+    fi
+}
+
+#指定war包所在的模块
+SPECIFY_MODULE()
+{
+    if [[ ! -L work_home ]];then
+        modules=`ls ./*/src/main/webapp/WEB-INF/web.xml | cut -d '/' -f 2`
+        if [[ `echo $modules|wc -w ` == 1 ]];then
+            MODULE=$modules
+        else
+            echo -e "\n请选择war包所在模块:"
+            select module in $modules;do
+                case $module in "")echo Re-select;;*)MODULE=$module;break;;esac
+            done
+        fi
+
+    fi
+}
+
+#maven 打包,profile从参数传入
+MAVEN_PACKAGE()
+{
+    mvn -U -P$PROFILE -Dmaven.test.skip=true clean package
+    if [ $? != 0 ]; then
+        echo "maven 打包失败!"
+        exit 1
+    fi
+}
+
+#指定war包并处理
+HANDLE_WAR()
+{
+    if [[ ! -L work_home ]];then
+        WAR=`ls -dl source_home/$MODULE/target/*.war|grep ^-|awk '{print $9}'|sed -n "$input p"`
+        rm -rf work_home
+        mkdir -p work4war
+        ln -sf ${WAR%.war} work_home
+        echo "已创建软链接:`ls -l work_home|awk '{print $9$10$11}'`"
+    fi
+}
+
+echo "===== 开始构建 ====="
+source shell_home/env.sh #仅用到profile变量
+if [[  -d source_home ]];then
+    cd source_home
+fi
+
+GET_SOURCE
+SPECIFY_MODULE
+MAVEN_PACKAGE
+HANDLE_WAR

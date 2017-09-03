@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Server port="9001" shutdown="SHUTDOWN">
+
+    <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+    <!-- Security listener. Documentation at /docs/config/listeners.html
+           <Listener className="org.apache.catalina.security.SecurityListener" />
+    -->
+    <!--APR library loader. Documentation at /docs/apr.html -->
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+    <!--Initialize Jasper prior to webapps are loaded. Documentation at /docs/jasper-howto.html -->
+    <Listener className="org.apache.catalina.core.JasperListener" />
+    <!-- Prevent memory leaks due to use of particular java/javax APIs-->
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+
+    <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml" />
+    </GlobalNamingResources>
+
+    <Service name="Catalina">
+        <Connector port="8001" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443"  URIEncoding="UTF-8" maxParameterCount="1000" maxSpareThreads="750"
+                   maxThreads="1000" minSpareTHreads="50" acceptCount="1000" useBodyEncodingForURI="true"/>
+        <Engine name="Catalina" defaultHost="localhost" jvmRoute="s1">
+
+            <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                   resourceName="UserDatabase"/>
+            <Host name="localhost"  appBase="webapps"
+                  unpackWARs="false" autoDeploy="false"
+                  xmlValidation="false" xmlNamespaceAware="false">
+
+            </Host>
+        </Engine>
+    </Service>
+</Server>

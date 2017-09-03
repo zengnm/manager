@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Server port="9001" shutdown="SHUTDOWN">
+
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on"/>
+    <Listener className="org.apache.catalina.core.JasperListener"/>
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
+    <Listener className="org.apache.catalina.mbeans.ServerLifecycleListener" />
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
+
+    <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml"/>
+    </GlobalNamingResources>
+
+    <Service name="Catalina">
+        <Connector port="8001" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" URIEncoding="utf-8"
+                   useBodyEncodingForURI="true"/>
+        <Engine name="Catalina" defaultHost="localhost" jvmRoute="s1">
+
+            <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                   resourceName="UserDatabase"/>
+            <Host name="localhost" appBase="webapps"
+                  unpackWARs="false" autoDeploy="false"
+                  xmlValidation="false" xmlNamespaceAware="false">
+
+            </Host>
+        </Engine>
+    </Service>
+</Server>
