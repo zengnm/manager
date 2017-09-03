@@ -19,7 +19,7 @@ fi
 ################################## NEW PROJECT_BASE WORKS ######################################
 NEW_BASE_WORKS ()
 {
-    mkdir -p ${WORK}
+    mkdir -p ${WORK}/${DOMAIN}
     mkdir -p ${SHELL}/${DOMAIN}
     mkdir -p ${INSTANCE}/${DOMAIN}
     mkdir -p ${NGINX}/logs/${DOMAIN}
