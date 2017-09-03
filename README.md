@@ -16,9 +16,8 @@
 
 ## 2.初始化配置
     a.下载脚本，地址:https://github.com/zengnm/manager/archive/master.zip ,解压。
-        
-    b.选择或新建一个用户账号如admin(脚本将以该用户执行,并使用该用户创建
-    相关文档),并设置未manager中USERNAME的值
+        
+    b.选择或新建一个用户账号如admin(脚本将以该用户执行,并使用该用户创建相关文档),并设置未manager中USERNAME的值
        
     c.切换到普通用户如admin,在脚本主目录下执行:
         su admin (可能需要输入密码)
