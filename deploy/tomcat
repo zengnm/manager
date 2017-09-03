@@ -1,7 +1,7 @@
 #!/bin/bash
 export CATALINA_BASE1=catalina_base
 LOG=`date --date='1 months ago' +%Y-%m`
-source ${SHELL}/${DOMAIN}/env.sh
+source ${SHELL}/domain/env.sh
 #########################starting#############
 start()
 {
@@ -32,8 +32,6 @@ for CATALINA_BASE in $CATALINA_BASE1
         echo "*****************************************"
 
         $CATALINA_BASE/bin/stop.sh |awk '{printf "..."}END{print "Finished"}'
-        ps -aef | grep java|grep "$CATALINA_BASE" |grep -v grep |sed 's/ [ ]*/:/g' |cut -d: -f2|kill -9 `cat`
-
         if [[ $? == 0 ]];then
             echo "###########################"
             echo "# tomcat stoped succeed!! #"

@@ -1,5 +1,5 @@
 #!/bin/bash
-PACKAGE="$WORKSPACE/auto_deploy/795/package"
+PACKAGE="${WORKSPACE}/auto_deploy/795/package"
 HELP_BASE="*************************************************************************\n
 manager build|deploy|tomcat|logs|cleanlogs|help                              \t\t\t*\n\t
         build     \t\t代码更新、打包、部署                                    \t\t\t\t*\n\t
@@ -31,17 +31,17 @@ complete -F _parser_options manager"
 export USERNAME=znm   #用户名
 export LANG=zh.CN.UTF-8
 export WORKSPACE=/export #工作空间
-export SHELL=$WORKSPACE/Shell #执行脚本位置
-export WORK=$WORKSPACE/Work #工作WAR包位置
-export SOURCE=$WORKSPACE/Source #代码保存位置
-export INSTANCE=$WORKSPACE/Instance #catalina_base位置
-export LOGS=$WORKSPACE/Logs #日志保存位置
-export NGINX=$WORKSPACE/Nginx #nginx位置
+export SHELL=${WORKSPACE}/Shell #执行脚本位置
+export WORK=${WORKSPACE}/Work #工作WAR包位置
+export SOURCE=${WORKSPACE}/Source #代码保存位置
+export INSTANCE=${WORKSPACE}/Instance #catalina_base位置
+export LOGS=${WORKSPACE}/Logs #日志保存位置
+export NGINX=${WORKSPACE}/Nginx #nginx位置
 
 SELECT()
 {
     echo "输入选择的id:"
-    select SELECT in $1; do
+    select SELECT in $*; do
       case ${SELECT} in "")echo Re-select;; *) break;; esac
     done
     echo ""
@@ -49,9 +49,9 @@ SELECT()
 
 ADDENV()
 {
-    mkdir -p $SHELL/$DOMAIN/
-    cp ../env.sh $SHELL/$DOMAIN/
-    chmod u+x $SHELL/$DOMAIN/env.sh
+    mkdir -p ${SHELL}/${DOMAIN}/
+    cp ../env.sh ${SHELL}/${DOMAIN}/
+    chmod u+x ${SHELL}/${DOMAIN}/env.sh
     echo "===== 已配置env.sh脚本 ====="
 }
 
@@ -68,46 +68,47 @@ fi
 case $1 in
     build)
         echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
-        $SHELL/$DOMAIN/build
+        ${SHELL}/${DOMAIN}/build
+        ${SHELL}/${DOMAIN}/tomcat
         ;;
     deploy)
         echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
         echo -n "从以下war包中," && SELECT `ls ${PACKAGE}` && WAR=${SELECT}
-        echo "domain = $DOMAIN, war = $WAR"
+        echo "domain = ${DOMAIN}, war = ${WAR}"
         read -p "Are you sure deploy ?(yes/no):" YES
         case $YES in
             y|Y|yes|YES)
                 echo "======= deploy start! ======="
-                $SHELL/$DOMAIN/tomcat stop
-                rm -rf $WORK/$DOMAIN/*
-                unzip $PACKAGE/$WAR -d $WORK/$DOMAIN/
-                chmod -R +wrx $WORK/$DOMAIN/*
-                $SHELL/$DOMAIN/tomcat
+                ${SHELL}/${DOMAIN}/tomcat stop
+                rm -rf ${WORK}/${DOMAIN}/*
+                unzip ${PACKAGE}/${WAR} -d ${WORK}/${DOMAIN}/
+                chmod -R +wrx ${WORK}/${DOMAIN}/*
+                ${SHELL}/${DOMAIN}/tomcat
         esac
         ;;
     tomcat)
         echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
         select COM in "restart" "stop";do
-            case $COM in "")echo Re-select;; restart)$SHELL/$DOMAIN/tomcat restart;break;;
-                stop)$SHELL/$DOMAIN/tomcat stop;break;;esac
+            case $COM in "")echo Re-select;; restart)${SHELL}/${DOMAIN}/tomcat restart;break;;
+                stop)${SHELL}/${DOMAIN}/tomcat stop;break;;esac
         done
         ;;
     logs)
         echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
-        tail -200f $INSTANCE/$DOMAIN/server1/logs/catalina.out
+        tail -200f ${INSTANCE}/${DOMAIN}/server1/logs/catalina.out
         ;;
     cleanlogs)
         echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
         echo "delete the following files:"
-        find $INSTANCE/$DOMAIN/server?/logs/ -type f;
-        find $LOGS/$DOMAIN/* -type f -name '*.log*'|egrep "*.log$|*.log(\\.)?[0-9]+";
+        find ${INSTANCE}/${DOMAIN}/server?/logs/ -type f;
+        find ${LOGS}/${DOMAIN}/* -type f -name '*.log*'|egrep "*.log$|*.log(\\.)?[0-9]+";
         read -p "Are you sure detele all logs?(yes/no):" YES
         case $YES in
             y|Y|yes|YES)
-            find $INSTANCE/$DOMAIN/server?/logs/ -type f|xargs rm -f;
-            find $LOGS/$DOMAIN/* -type f -name '*.log*'|egrep "*.log$|*.log(\\.)?[0-9]+"|xargs rm -f;
+            find ${INSTANCE}/${DOMAIN}/server?/logs/ -type f|xargs rm -f;
+            find ${LOGS}/${DOMAIN}/* -type f -name '*.log*'|egrep "*.log$|*.log(\\.)?[0-9]+"|xargs rm -f;
             echo "All delete completed !"
-            $SHELL/$DOMAIN/tomcat
+            ${SHELL}/${DOMAIN}/tomcat
         esac
         ;;
     [a-zA-Z0-9]*|"")
@@ -137,21 +138,21 @@ case $2 in
         add-build)
             read -p "请输入域名:" DOMAIN
             ADDENV
-            ../build/add-build.sh $DOMAIN
-            $SHELL/$DOMAIN/build
+            ../build/add-build.sh ${DOMAIN}
+            ${SHELL}/${DOMAIN}/build
             ;;
         add-tomcat+nginx)
             read -p "请输入域名:" DOMAIN
             ADDENV
-            ../deploy/add-nginx+tomcat.sh $DOMAIN
+            ../deploy/add-nginx+tomcat.sh ${DOMAIN}
             ;;
         add-build+tomcat+nginx)
             read -p "请输入域名:" DOMAIN
             ADDENV
-            ../deploy/add-nginx+tomcat.sh $DOMAIN
+            ../deploy/add-nginx+tomcat.sh ${DOMAIN}
 
-            ../build/add-build.sh $DOMAIN
-            $SHELL/$DOMAIN/build
+            ../build/add-build.sh ${DOMAIN}
+            ${SHELL}/${DOMAIN}/build
             $S
             ;;
         add-home)
@@ -161,7 +162,7 @@ case $2 in
             ln -sf ${SHELL}/${DOMAIN}/* .
             ln -sf ${INSTANCE}/${DOMAIN}/server./logs/catalina.out .
             ln -sf ${LOGS}/${DOMAIN} Logs
-            ln -sf ${SOURCE}/$DOMAIN .
+            ln -sf ${SOURCE}/${DOMAIN} .
             echo "已配置${DOMAIN}的home目录"
             ;;
         esac
@@ -171,16 +172,16 @@ case $2 in
         case ${OPERATE} in
         del-build)
             echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
-            ../build/rm-build.sh $DOMAIN
+            ../build/rm-build.sh ${DOMAIN}
             ;;
         del-tomcat+nginx)
             echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
-            ../deploy/rm-nginx+tomcat.sh $DOMAIN
+            ../deploy/rm-nginx+tomcat.sh ${DOMAIN}
             ;;
         del-build+tomcat+nginx)
             echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
-            ../build/rm-build.sh $DOMAIN
-            ../deploy/rm-nginx+tomcat.sh $DOMAIN
+            ../build/rm-build.sh ${DOMAIN}
+            ../deploy/rm-nginx+tomcat.sh ${DOMAIN}
             ;;
         del-home)
             echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}

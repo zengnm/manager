@@ -36,6 +36,7 @@ TOMCAT_NEW ()
     fi
     SH_FILE="${SHELL}/${DOMAIN}/tomcat"
 
+    sed -i "s#domain#${DOMAIN}#g" ${SH_FILE}
     sed -i "s#catalina_base#${INSTANCE}/${DOMAIN}/${NEW_SERVER}#g" ${SH_FILE}
 
     sed -i "s#catalina_base#${INSTANCE}/${DOMAIN}/${NEW_SERVER}#g" 	${NEW_SERVER}/bin/*
@@ -78,6 +79,7 @@ NGINX_NEW ()
     if [[ ! -f ${CONF} ]];then
         cp nginx.conf ${NGINX}/conf
         sed -i "s#username#${USERNAME}#g" ${CONF}
+        sed -i "s#nginx_home#${NGINX}#g" ${CONF}
     fi
     NEW_NGINX_FILE="${NGINX}/conf/domains/${DOMAIN}"
     cp xxx.com  ${NEW_NGINX_FILE}
@@ -94,7 +96,7 @@ NGINX_ADD ()
 {
     NGINX_FILE="${NGINX}/conf/domains/${DOMAIN}"
     LINE_NUM=`cat -n ${NGINX_FILE} |grep "server 127"|tail -n 1|awk '{print $1}'`
-    sed -i "${LINE_NUM}a\\\t\tserver\ 127.0.0.1\:${HTTPPORT}\ \ weight\=10\ max_fails\=2\ fail_timeout\=30s\;" ${NGINX_FILE}
+    sed -i "${LINE_NUM}a\\\tserver\ 127.0.0.1\:${HTTPPORT}\ \ weight\=10\ max_fails\=2\ fail_timeout\=30s\;" ${NGINX_FILE}
     echo "Nginx Config Complete...."
 }
 ################## FOR REAL ###############################
