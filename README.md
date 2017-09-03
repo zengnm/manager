@@ -20,7 +20,8 @@
 #### 2.初始化配置
     a.下载脚本，地址:https://github.com/zengnm/manager/archive/master.zip ,解压。
         
-    b.选择或新建一个用户账号如admin(脚本将以该用户执行,并使用该用户创建相关文档),并设置为manager中USERNAME的值
+    b.选择或新建一个用户账号如admin(脚本将以该用户执行,并使用该用户创建相关文档),并设置为manager中USERNAME的值;
+      调整manager中的WORKSPACE,WORK,INSTANCE等变量值，设置存放位置。
        
     c.切换到普通用户如admin,在脚本主目录下执行:
         su admin (可能需要输入密码)
@@ -28,7 +29,7 @@
         bin/manager -m init （初始化完成后，会在$HOME/.bashrc文件配置PATH和自动补齐脚本等。）
     d.验证。在任意目录下，执行manager，打印出帮助信息即说明配置完成。
 #### 3.环境变量配置
-    将jdk、maven、tomcat、nginx相关环境变量修改至env.sh
+    将jdk、maven、tomcat相关环境变量修改至env.sh
 
 ## 三、开始使用
 #### 1.搭建构建系统、部署系统
