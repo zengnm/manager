@@ -39,7 +39,7 @@
         搭建部署系统时，选择add-tomcat+nginx选项的id
         搭建构建、部署系统时，选择add-build+tomcat+nginx选项的id
         home目录生成，选择add-home选项的id
-#### 2.删除部署系统
+#### 2.删除构建部署系统
     使用以下命令来初始化应用:
         manager -m delete
     与搭建类似，选择对应id即可删除相应配置、目录。
