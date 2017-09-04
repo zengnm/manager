@@ -1,4 +1,17 @@
 #!/bin/bash
+
+####以下变量全局唯一,如无必要请一定不修改
+export USERNAME=admin   #用户名
+export LANG=zh.CN.UTF-8
+export WORKSPACE=/export #工作空间
+export SHELL=${WORKSPACE}/Shell #执行脚本位置
+export WORK=${WORKSPACE}/Work #工作WAR包位置
+export SOURCE=${WORKSPACE}/Source #代码保存位置
+export INSTANCE=${WORKSPACE}/Instance #catalina_base位置
+export LOGS=${WORKSPACE}/Logs #日志保存位置
+export NGINX=${WORKSPACE}/Nginx #nginx位置
+export PACKAGE="${WORKSPACE}/auto_deploy/package" #WAR包存放位置
+
 HELP_BASE="*************************************************************************\n
 manager build|deploy|tomcat|logs|cleanlogs|help                              \t\t\t*\n\t
         build     \t\t代码更新、打包、部署                                    \t\t\t\t*\n\t
@@ -26,18 +39,6 @@ _parser_options()\n
 }\n
 complete -F _parser_options manager"
 
-####以下变量全局唯一,如无必要请一定不修改
-export USERNAME=znm   #用户名
-export LANG=zh.CN.UTF-8
-export WORKSPACE=/export #工作空间
-export SHELL=${WORKSPACE}/Shell #执行脚本位置
-export WORK=${WORKSPACE}/Work #工作WAR包位置
-export SOURCE=${WORKSPACE}/Source #代码保存位置
-export INSTANCE=${WORKSPACE}/Instance #catalina_base位置
-export LOGS=${WORKSPACE}/Logs #日志保存位置
-export NGINX=${WORKSPACE}/Nginx #nginx位置
-PACKAGE="${WORKSPACE}/auto_deploy/795/package" #WAR包位置
-
 SELECT()
 {
     echo "输入选择的id:"
@@ -59,9 +60,9 @@ ADDENV()
 
 cd `dirname $0`
 #切换到指定用户
-if [[ "$USERNAME" != `whoami` ]];then
-    echo "当前用户不是$USERNAME, 进行切换..."
-    su - $USERNAME
+if [ "${USERNAME}" != `whoami` ];then
+    echo "当前用户不是$USERNAME, 请切换..."
+    exit 1
 fi
 
 ########################### 基础管理 #######################################
