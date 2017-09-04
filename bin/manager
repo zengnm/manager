@@ -1,5 +1,4 @@
 #!/bin/bash
-PACKAGE="${WORKSPACE}/auto_deploy/795/package"
 HELP_BASE="*************************************************************************\n
 manager build|deploy|tomcat|logs|cleanlogs|help                              \t\t\t*\n\t
         build     \t\t代码更新、打包、部署                                    \t\t\t\t*\n\t
@@ -37,6 +36,7 @@ export SOURCE=${WORKSPACE}/Source #代码保存位置
 export INSTANCE=${WORKSPACE}/Instance #catalina_base位置
 export LOGS=${WORKSPACE}/Logs #日志保存位置
 export NGINX=${WORKSPACE}/Nginx #nginx位置
+PACKAGE="${WORKSPACE}/auto_deploy/795/package" #WAR包位置
 
 SELECT()
 {
