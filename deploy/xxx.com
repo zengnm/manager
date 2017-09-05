@@ -7,11 +7,11 @@ server
     server_name              xxx.com;
     access_log               nginx_home/logs/xxx.com/xxx.com_access.log main;
     error_log                nginx_home/logs/xxx.com/xxx.com_error.log warn;
-    chunkin on;
-    error_page 411 = @my_error;
-    location @my_error {
-        chunkin_resume;
-    }
+    # chunkin on;
+    # error_page 411 = @my_error;
+    # location @my_error {
+    #     chunkin_resume;
+    # }
     root work/xxx.com/;
     location / {
         proxy_next_upstream     http_500 http_502 http_503 http_504 error timeout invalid_header;

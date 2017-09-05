@@ -75,12 +75,6 @@ TOMCAT_ADD ()
 ################### SET NGINX SERVER ################################ 
 NGINX_NEW ()
 {
-    CONF="${NGINX}/conf/nginx.conf"
-    if [[ ! -f ${CONF} ]];then
-        cp nginx.conf ${NGINX}/conf
-        sed -i "s#username#${USERNAME}#g" ${CONF}
-        sed -i "s#nginx_home#${NGINX}#g" ${CONF}
-    fi
     NEW_NGINX_FILE="${NGINX}/conf/domains/${DOMAIN}"
     cp xxx.com  ${NEW_NGINX_FILE}
     sed -i "s#xxx.com#${DOMAIN}#g" ${NEW_NGINX_FILE}
