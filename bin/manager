@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ####以下变量全局唯一,如无必要请一定不修改
-export USERNAME=admin   #用户名
+export USERNAME=zengnianmei   #用户名
 export LANG=zh.CN.UTF-8
 export WORKSPACE=/export #工作空间
 export SHELL=${WORKSPACE}/Shell #执行脚本位置
@@ -9,8 +9,8 @@ export WORK=${WORKSPACE}/Work #工作WAR包位置
 export SOURCE=${WORKSPACE}/Source #代码保存位置
 export INSTANCE=${WORKSPACE}/Instance #catalina_base位置
 export LOGS=${WORKSPACE}/Logs #日志保存位置
-export NGINX=${WORKSPACE}/Nginx #nginx位置
-export PACKAGE="${WORKSPACE}/auto_deploy/package" #WAR包存放位置
+export NGINX=${WORKSPACE}/Nginx #nginx配置文件位置
+export PACKAGE=${WORKSPACE}/Package #WAR包存档位置
 
 HELP_BASE="*************************************************************************\n
 manager build|deploy|tomcat|logs|cleanlogs|help                              \t\t\t*\n\t
@@ -88,10 +88,18 @@ case $1 in
         esac
         ;;
     tomcat)
-        echo -n "从以下域名中," && SELECT `ls ${SHELL}` && DOMAIN=${SELECT}
+        echo -n "从以下域名中," && SELECT `ls ${SHELL}` && export DOMAIN=${SELECT}
         select COM in "restart" "stop";do
-            case $COM in "")echo Re-select;; restart)${SHELL}/${DOMAIN}/tomcat restart;break;;
-                stop)${SHELL}/${DOMAIN}/tomcat stop;break;;esac
+            case $COM in "")echo Re-select;;
+                restart)
+                    ../deploy/tomcat restart
+                    break
+                    ;;
+                stop)
+                    ../deploy/tomcat stop
+                    break
+                    ;;
+            esac
         done
         ;;
     logs)
@@ -191,9 +199,7 @@ case $2 in
         esac
         ;;
     "complete")
-        cpbase=`echo -e $HELP_BASE|sed -n 2p|awk '{print $2}'`
-        cpadva=`echo -e $HELP_ADVA|sed -n 2p|awk '{print $3}'`
-        echo ${cpbase}"|"${cpadva}
+        echo "build|tomcat|logs|cleanlogs|help|init|create|delete"
         ;;
     *)
         echo -e ${HELP_ADVA}

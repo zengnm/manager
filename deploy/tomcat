@@ -1,49 +1,38 @@
 #!/bin/bash
-export CATALINA_BASE1=catalina_base
-LOG=`date --date='1 months ago' +%Y-%m`
-source ${SHELL}/domain/env.sh
-#########################starting#############
+source ${SHELL}/${DOMAIN}/env.sh
+TOMCAT_HOME=${INSTANCE}/${DOMAIN}
+################ tomcat start ####################
 start()
 {
-for CATALINA_BASE in $CATALINA_BASE1
-    do
-        echo "*****************************************"
-        echo "***       tomcat starting action      ***"
-        echo "*****************************************"
-
-        rm -fr $CATALINA_BASE/logs/*$LOG*
-        $CATALINA_BASE/bin/start.sh|awk '{printf "..."}END{print "Finished"}'
-        if [[ $? == 0 ]];then
-            echo "###########################"
-            echo "#tomcat started succeed!! #"
-            echo "###########################"
+    for catalina in `ls ${TOMCAT_HOME}`;do
+        echo "=====  tomcat${COUNT} starting action  ====="
+        export CATALINA_BASE=${TOMCAT_HOME}/${catalina}
+        ${CATALINA_HOME}/bin/startup.sh -config ${CATALINA_BASE}/conf/server.xml |awk '{print }'
+#        $CATALINA_BASE/bin/start.sh |awk '{printf "..."}END{print "Finished"}'
+        if [ $? == 0 ];then
+            echo -e "=====  tomcat${COUNT} started succeed  ===== \n\n"
         fi
     done
-    tail -f $CATALINA_BASE/logs/catalina.out
+    echo "===== ${CATALINA_BASE}/logs/catalina.out ====="
+    tail -f ${CATALINA_BASE}/logs/catalina.out
 }
 
-#########################stoping####################
+################# tomcat stop ####################
 stop()
 {
-for CATALINA_BASE in $CATALINA_BASE1
-    do
-        echo "*****************************************"
-        echo "***       tomcat stoping action       ***"
-        echo "*****************************************"
-
-        $CATALINA_BASE/bin/stop.sh |awk '{printf "..."}END{print "Finished"}'
-        if [[ $? == 0 ]];then
-            echo "###########################"
-            echo "# tomcat stoped succeed!! #"
-            echo "###########################"
+    for catalina in `ls ${TOMCAT_HOME}`;do
+        echo "=====  tomcat${COUNT} stopping action  ====="
+        export CATALINA_BASE=${TOMCAT_HOME}/${catalina}
+        ${CATALINA_HOME}/bin/shutdown.sh -config ${CATALINA_BASE}/conf/server.xml
+        if [ $? == 0 ];then
+            PID=`ps -aef | grep java|grep ${CATALINA_BASE}| grep -v grep | sed 's/ [ ]*/:/g'|cut -d: -f2`
+            if [ ${PID} ];then
+                echo "  kill process，pid=${PID}"
+                kill -9 ${PID}
+            fi
         fi
+        echo -e "=====  tomcat${COUNT} stopped succeed  =====\n\n"
     done
-}
-#######################restarting#####################
-restart()
-{
-    stop
-    start
 }
 
 case "$1" in
@@ -53,12 +42,11 @@ case "$1" in
     stop)
         stop
         ;;
-    restart)
-        restart
-        ;;
     ?|help)
         echo $"使用命令格式: $0 {start|stop|restart|help|?}"
         ;;
     *)
-    restart
+        stop
+        start
+        ;;
 esac
