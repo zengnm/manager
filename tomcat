@@ -1,0 +1,88 @@
+#!/bin/bash
+
+################ tomcat start ####################
+start()
+{
+    for catalina in `ls ${TOMCAT_HOME}`;do
+        echo "=====  ${catalina} starting action  ====="
+        export CATALINA_BASE=${TOMCAT_HOME}/${catalina}
+        mkdir -p ${LOGS}/${DOMAIN}/${catalina}
+        export CATALINA_OUT=${LOGS}/${DOMAIN}/${catalina}/catalina.out
+        if [ ${ADDRESS} ];then
+            export CATALINA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${ADDRESS}"
+            ADDRESS=$[${ADDRESS}+1]
+        fi
+        ${CATALINA_HOME}/bin/startup.sh -config ${CATALINA_BASE}/conf/server.xml |awk '{print }'
+        if [ $? == 0 ];then
+            echo -e "=====  ${catalina} started succeed  ===== \n\n"
+        fi
+    done
+    echo "===== ${CATALINA_OUT} ====="
+    tail -f ${CATALINA_OUT}
+}
+
+################# tomcat stop ####################
+stop()
+{
+    for catalina in `ls ${TOMCAT_HOME}`;do
+        echo "=====  ${catalina} stopping action  ====="
+        export CATALINA_BASE=${TOMCAT_HOME}/${catalina}
+        ${CATALINA_HOME}/bin/shutdown.sh -config ${CATALINA_BASE}/conf/server.xml
+        if [ $? == 0 ];then
+            PID=`ps -aef | grep java|grep ${CATALINA_BASE}| grep -v grep | sed 's/ [ ]*/:/g'|cut -d: -f2`
+            if [ ${PID} ];then
+                echo "kill process，pid=${PID}"
+                kill -9 ${PID}
+            fi
+        fi
+        echo -e "=====  ${catalina} stopped succeed  =====\n\n"
+    done
+}
+
+############### adjust_tomcat_nginx ###############
+#调整tomcat实例个数，并修改nginx配置
+adjust_tomcat_nginx()
+{
+    if [ -z ${INSTANCE_NUM} ];then
+        exit 0
+    fi
+    if [[ $? != 0 || ${INSTANCE_NUM} -lt 0 || ${INSTANCE_NUM} -gt 5 ]];then
+        echo "配置错误！"
+        exit 0
+    fi
+
+    mkdir -p ${INSTANCE}/${DOMAIN}
+    if [[ ${INSTANCE_NUM} = 0 ]];then
+        rm -rf ${INSTANCE}/${DOMAIN}
+        rm -f ${NGINX}/conf/domains/${DOMAIN}
+    fi
+
+    while [[ ${INSTANCE_NUM} != `ls ${INSTANCE}/${DOMAIN}|wc -l` ]];do
+        if [[ ${INSTANCE_NUM} > `ls ${INSTANCE}/${DOMAIN}|wc -l` ]];then
+            deploy/add-one.sh
+        else
+            deploy/rm-one.sh
+        fi
+    done
+}
+
+source ${CONFIG}/${DOMAIN}
+TOMCAT_HOME=${INSTANCE}/${DOMAIN}
+case "$1" in
+    start)
+        adjust_tomcat_nginx
+        start
+        ;;
+    stop)
+        stop
+        adjust_tomcat_nginx
+        ;;
+    ?|help)
+        echo $"使用命令格式: $0 {start|stop|restart|help|?}"
+        ;;
+    *)
+        stop
+        adjust_tomcat_nginx
+        start
+        ;;
+esac

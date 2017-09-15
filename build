@@ -1,0 +1,153 @@
+#!/bin/bash
+
+#在3s内确定切换,则切换并更新选择的分支;否则直接跳过
+checkout()
+{
+    cd ${SOURCE_HOME}
+    head=$(< ".git/HEAD")
+    if [[ $head = ref:\ refs/heads/* ]]; then
+        current_branch=${head#*/*/}
+        echo "当前分支名: $current_branch"
+    fi
+    if [ ${BRANCH} ];then
+        if [ ${current_branch} = ${BRANCH} ];then
+            return 0
+        fi
+
+        git checkout ${BRANCH} && git pull >/dev/null
+        if [ $? != 0 ];then
+            echo "git 切换分支失败!"
+            exit 1
+        else
+            return 0
+        fi
+    fi
+    read -ep "是否切换分支?(yes/no)" YES
+    case ${YES} in
+     y|Y|yes|YES)
+        select branch in `git branch -r|grep -v "HEAD" |sed "s# origin/##g"`;do
+            case $branch in "")echo Re-select;; *) BRANCH=`echo $branch|sed 's/[ ]//g'`; break;; esac
+        done
+        if [ ${current_branch} = ${BRANCH} ];then
+            return 0
+        fi
+        git checkout ${BRANCH} && git pull >/dev/null
+        ;;
+    *)
+        ;;
+    esac
+}
+
+#获取代码
+get_source()
+{
+    if [[ `echo ${REMOTE_URL} |grep "^svn://"|wc -l` == 0 ]];then #git
+        if [[ -d ${SOURCE_HOME}/.git ]];then
+            git pull && checkout
+        else
+            cd / && /bin/rm -rf ${SOURCE_HOME}
+            git clone ${REMOTE_URL} ${SOURCE_HOME} && checkout
+
+        fi
+    else #svn update或checkout
+        if [[ -d ${SOURCE_HOME}/.svn ]];then
+            export LC_ALL=C && svn update && unset LC_ALL
+        else
+            cd / && /bin/rm -rf ${SOURCE_HOME}
+            export LC_ALL=C && svn checkout ${REMOTE_URL} ${SOURCE_HOME} && unset LC_ALL
+        fi
+    fi
+
+    if [ $? != 0 ];then
+        echo "获取最新代码失败"
+        exit 1
+    fi
+}
+
+#指定war包所在的模块
+specify_module()
+{
+    if [[ ${WAR_MODULE} && ${WAR_MODULE} = "unknown" ]];then
+        cd ${SOURCE_HOME}
+        modules=`ls ./*/src/main/webapp/WEB-INF/web.xml | cut -d '/' -f 2`
+        if [[ `echo ${modules}|wc -w ` == 1 ]];then
+            WAR_MODULE=${modules}
+        else
+            echo -e "\n请选择war包所在模块:"
+            select module in ${modules};do
+                case ${module} in "")echo Re-select;;*)WAR_MODULE=${module};break;;esac
+            done
+        fi
+
+    fi
+}
+
+#执行maven命令
+maven_exec()
+{
+    cd ${SOURCE_HOME} && eval ${EXEC}
+    if [ $? != 0 ]; then
+        echo "maven 命令执行失败!"
+        exit 1
+    fi
+}
+
+#指定war包并处理
+handle_war()
+{
+    if [ ${WAR_MODULE} ];then
+        WAR=`ls -dl ${SOURCE_HOME}/${WAR_MODULE}/target/*.war|grep ^-|awk '{print $9}'`
+        if [ -z ${WAR} ];then
+            echo "模块${WAR_MODULE}下，未找到WAR包"
+            exit 1
+        fi
+
+        mkdir -p ${WORK} && rm -rf ${WORK}/${DOMAIN}
+        ln -sf ${WAR%.war} ${WORK}/${DOMAIN}
+        echo "已更新war包到${WORK}/${DOMAIN}"
+
+        time=`date +%Y%m%d%H%M%S`
+        real_war=`echo ${WAR}|awk -F "/" '{print $NF}'`
+        backup_war="${real_war%.war}_`date +%Y%m%d%H%M%S`.war"
+        cd ${PACKAGE} && ls|egrep "${real_war%.war}_[0-9]{14}.war"|sort -r|sed -n '3,$p'|xargs rm -rf
+        mkdir -p ${DOMAIN} && cp ${WAR} ${DOMAIN}/${backup_war}
+        echo "已备份到${PACKAGE}/${DOMAIN}目录的${backup_war}"
+    fi
+}
+
+echo "===== 开始构建 ====="
+CONFIG_FILE=${CONFIG}/${DOMAIN}
+chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE}
+if [[ $? != 0 ]];then
+    exit 1
+fi
+
+IFS=$'\n'
+for remote_url in `cat ${CONFIG_FILE}|grep "REMOTE_URL."|sort` ;do
+    NUM=`echo ${remote_url}|awk -F "=" '{print $1}'|sed 's/REMOTE_URL//g'`
+    REMOTE_URL=`echo ${remote_url}|awk -F "=" '{print $2}'|awk '{print $1}'|sed 's/"//g'`
+    BRANCH=`echo ${remote_url}|awk -F "=" '{print $2}'|awk '{print $2}'|sed 's/"//g'`
+    EXEC=`cat ${CONFIG_FILE}|grep "EXEC${NUM}"|awk -F "=" '{print $2}'|sed 's/"//g'`
+    WAR_MODULE=`cat ${CONFIG_FILE}|grep "WAR_MODULE${NUM}"|awk -F "=" '{print $2}'|sed 's/"//g'`
+
+    if [[ -z ${REMOTE_URL} || -z ${EXEC} ]];then
+        echo "第${NUM}个构建项参数错误！"
+        exit 1
+    fi
+
+    if [ ${WAR_MODULE}  ];then
+        SOURCE_HOME=${SOURCE}/${DOMAIN}
+    else
+        SOURCE_HOME=${SOURCE}/`echo ${REMOTE_URL}|awk -F "/" '{print $NF}'`
+        if [[ `cat ${CONFIG_FILE}|grep "WAR_MODULE${NUM}"|wc -l` == 1 ]];then
+            SOURCE_HOME=${SOURCE}/${DOMAIN}
+            WAR_MODULE=unknown
+        fi
+    fi
+
+    get_source && specify_module && maven_exec && handle_war
+    if [ $? != 0 ];then
+        exit 1
+    fi
+
+done

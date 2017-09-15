@@ -1,0 +1,186 @@
+#!/bin/bash
+
+####以下变量全局唯一,如无必要请一定不修改
+export USERNAME=admin   #用户名
+export LANG=zh.CN.UTF-8
+export WORK=/export/Work #工作WAR包位置
+export SOURCE=/export/Source #代码保存位置
+export INSTANCE=/export/Instance #catalina_base位置
+export LOGS=/export/Logs #日志保存位置
+export NGINX=/export/Nginx #nginx配置文件位置
+export PACKAGE=/export/Package #WAR包存档位置
+export CONFIG=~/config #配置文件存放目录
+
+HELP="manager command option :                                     \n
+        \t    build     \t\t  代码更新、打包、部署                    \n
+        \t\t          -p  \t  代码更新、打包，不部署                   \n
+        \t    deploy      \t  自动部署${PACKAGE}/[DOMAIN]下的    包            \n
+        \t    tomcat  -r  \t  重启tomcat                            \n
+        \t\t          -s  \t  启动tomcat                            \n
+        \t\t          -z  \t  停止tomcat                            \n
+        \t    logs      \t\t  查看catalina.out最新200行              \n
+        \t    cleanlogs   \t  清除日志并重启tomcat                    \n
+        \t    init      \t\t  初始化设置(source $HOME/.bashrc生效)    \n
+        \t    cleanup -a  \t  删除应用所有缓存                        \n
+        \t\t          -b  \t  删除代码                               \n
+        \t    help      \t\t  帮助                                  \n"
+
+INITSH="
+_parser_options()\n
+{\n
+   local curr_arg;\n
+   curr_arg=\${COMP_WORDS[COMP_CWORD]}\n
+   param=\`manager complete|sed 's#|# #g'\`\n
+   COMPREPLY=(\$(compgen -W \"\$param\" -- \$curr_arg ))\n
+}\n
+complete -F _parser_options manager"
+
+#获取参数及选项，PARAM为参数，OPTION为选项
+getpar_opt()
+{
+    param=`getopt abprsz $@`
+    if [[ $? != 0 ]];then
+            exit 1
+    fi
+    OPTION=`echo $param|awk -F "-- " '{print $1}'|sed 's/[- ]//g'`
+    PARAM=`echo $param|awk -F "-- " '{print $2}'`
+}
+
+SELECT()
+{
+    echo "输入选择的id:"
+    select SELECT in $*; do
+      case ${SELECT} in "")echo Re-select;; *) break;; esac
+    done
+    echo ""
+}
+
+
+get_domain()
+{
+    echo "查找目录:${CONFIG}..."
+    echo -n "从以下域名中," && SELECT `ls ${CONFIG}` && export DOMAIN=${SELECT}
+    if [ -z ${DOMAIN} ];then
+        echo "获取域名失败！"
+        exit 1
+    fi
+}
+
+
+cd `dirname $0`
+#切换到指定用户
+if [ "${USERNAME}" != `whoami` ];then
+    echo "当前用户不是$USERNAME, 请切换..."
+    exit 1
+fi
+
+getpar_opt $@
+
+case ${PARAM} in
+    build)
+        case ${OPTION} in
+            p) #只打包，不部署
+                get_domain
+                build
+                ;;
+            "")#默认
+                get_domain
+                build
+                tomcat
+                ;;
+            *)
+                echo -e ${HELP}
+            ;;
+        esac
+    ;;
+    deploy)
+        get_domain
+        echo -n "从以下war包中," && SELECT `ls ${PACKAGE}/${DOMAIN}` && WAR=${SELECT}
+        echo "domain = ${DOMAIN}, war = ${WAR}"
+        read -p "Are you sure deploy ?(yes/no):" YES
+        case $YES in
+            y|Y|yes|YES)
+                echo "======= deploy start! ======="
+                tomcat stop
+                rm -rf ${WORK}/${DOMAIN}
+                unzip ${PACKAGE}/${DOMAIN}/${WAR} -d ${WORK}/${DOMAIN}/
+                tomcat
+        esac
+    ;;
+    tomcat)
+        case ${OPTION} in
+            r) #restart
+                get_domain
+                tomcat restart
+                ;;
+            s) #start
+                get_domain
+                tomcat start
+                ;;
+            z) #stop
+                get_domain
+                tomcat stop
+                ;;
+            *)
+                echo -e ${HELP}
+            ;;
+        esac
+    ;;
+    logs)
+        get_domain
+        server="server1"
+        if [[ `ls ${INSTANCE}/${DOMAIN}|wc -l` > 1 && `ls ${LOGS}/${DOMAIN}|wc -l` >  1 ]];then
+            echo -n "从以下server中," &&  SELECT `ls ${LOGS}/${DOMAIN}`  && server=${SELECT}
+        fi
+        tail -200f ${LOGS}/${DOMAIN}/${server}/catalina.out
+        ;;
+    cleanlogs)
+        get_domain
+        echo "delete the following files:"
+        find ${INSTANCE}/${DOMAIN}/server?/logs/ -type f;
+        find ${LOGS}/${DOMAIN}/* -type f -name '*.log*'|egrep "*.log$|*.log(\\.)?[0-9]+";
+        read -p "Are you sure detele all logs?(yes/no):" YES
+        case $YES in
+            y|Y|yes|YES)
+            find ${INSTANCE}/${DOMAIN}/server?/logs/ -type f|xargs rm -f;
+            find ${LOGS}/${DOMAIN}/* -type f -name '*.log*'|egrep "*.log$|*.log(\\.)?[0-9]+"|xargs rm -f;
+            echo "All delete completed !"
+            tomcat
+        esac
+        ;;
+    init)
+        MANAGER_HOME=`pwd`
+        find ../ -name "*.sh"|xargs chmod u+x
+        if [ `cat ${HOME}/.bashrc|grep ":${MANAGER_HOME}"|wc -l` == 0 ]; then
+            echo -e "export PATH=\$PATH:${MANAGER_HOME}\n" ${INITSH} >> $HOME/.bashrc
+            echo "已添加环境变量，请重新打开bash或者 source ~/.bashrc生效"
+        fi
+        echo "===== 已初始化完成 ====="
+        ;;
+    cleanup)
+        case ${OPTION} in
+            a) #build+tomcat+nginx
+                get_domain
+                rm -rf ${WORK}/${DOMAIN}
+                rm -rf ${INSTANCE}/${DOMAIN}
+                rm -rf ${LOGS}/${DOMAIN}
+                rm -f ${NGINX}/conf/domains/${DOMAIN}
+                rm -rf ${PACKAGE}/${DOMAIN}
+                rm -rf ${SOURCE}/${DOMAIN}
+                ;;
+            b) #清除代码
+                rm -rf ${SOURCE}/${DOMAIN}
+                ;;
+            *)
+                echo -e ${HELP}
+                ;;
+
+        esac
+        ;;
+    "complete")
+        echo "build|tomcat|logs|cleanlogs|help|init|install|cleanup"
+        ;;
+    *)
+        echo -e ${HELP}
+        ;;
+esac
