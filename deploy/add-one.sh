@@ -2,7 +2,7 @@
 ##########获取可用的DOWNPORT，HTTPPORT
 get_port()
 {
-    if [[ ! -d ${INSTANCE} || `ls -l ${INSTANCE}/|wc -l` == 0 ]];then
+    if [[ ! -d ${INSTANCE} || `ls ${INSTANCE}/|wc -l` == 0 ]];then
         DOWNPORT="9001"
         HTTPPORT="8001"
     else
@@ -16,7 +16,7 @@ tomcat_add()
 {
     NUM=1
     if [ -d ${INSTANCE}/${DOMAIN} ];then
-        NUM=$[`ls -l ${INSTANCE}/${DOMAIN}|grep server|wc -l`+1]
+        NUM=$[`ls ${INSTANCE}/${DOMAIN}|grep server|wc -l`+1]
     fi
     NEW_SERVER=server${NUM}
     mkdir -p ${NEW_SERVER}/{logs,temp,webapps,work}

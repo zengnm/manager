@@ -10,6 +10,7 @@ export PATH=.:$JAVA_BIN:$PATH
 #######################################构建独有##########################################################
 export M2_HOME=/export/servers/apache-maven-3.3.9
 export PATH=$M2_HOME/bin:$PATH
+#unset M2_HOME #注意使用maven 2时，不能有M2_HOME环境变量
 #export MAVEN_HOME=/export/servers/apache-maven-2.2.1
 #export PATH=$MAVEN_HOME/bin:$PATH
 
@@ -17,8 +18,8 @@ export PATH=$M2_HOME/bin:$PATH
 # remote_url,exec,war_module按后面的序号分组,值越大越后执行
 #必填，git:clone_url branch svn:checkout_url
 REMOTE_URL1="http://source.jd.com/app/template.git"
-#必填，maven打包命令mvn clean install -U -Dmaven.test.skip=true -Pdevelopment / mvn clean install -U -Dmaven.test.skip=true
-EXEC1="mvn clean package -U -Dmaven.test.skip=true -Pdevelopment"
+#必填，maven打包命令mvn clean install -U -Pdevelopment -Dmaven.test.skip=true  / mvn clean install -U -Dmaven.test.skip=true
+EXEC1="mvn clean package -U -Pdevelopment -Dmaven.test.skip=true"
 #非必填，抽包模块, 如果是作为jar包被依赖，无该参数
 WAR_MODULE1=jd-hotel-web
 ######################################################
