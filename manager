@@ -85,8 +85,7 @@ case ${PARAM} in
                 ;;
             "")#默认
                 get_domain
-                build
-                tomcat
+                build && tomcat
                 ;;
             *)
                 echo -e ${HELP}
