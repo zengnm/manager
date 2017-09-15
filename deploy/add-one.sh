@@ -54,7 +54,7 @@ nginx_add() #配置文件中添加一行：server 127.0.0.1:{httpport}  weight=1
 ###########################################################################
 get_port
 CONFIG_FILE=${CONFIG}/${DOMAIN}
-chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE}  && mvn --version
+chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE} && ${CATALINA_HOME}/bin/version.sh
 if [[ $? != 0 ]];then
     exit 1
 fi

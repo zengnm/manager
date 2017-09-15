@@ -117,7 +117,7 @@ handle_war()
 
 echo "===== 开始构建 ====="
 CONFIG_FILE=${CONFIG}/${DOMAIN}
-chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE}
+chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE} && mvn --version
 if [[ $? != 0 ]];then
     exit 1
 fi
