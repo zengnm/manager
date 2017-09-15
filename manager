@@ -160,12 +160,12 @@ case ${PARAM} in
         case ${OPTION} in
             a) #build+tomcat+nginx
                 get_domain
-                rm -rf ${WORK}/${DOMAIN}
-                rm -rf ${INSTANCE}/${DOMAIN}
-                rm -rf ${LOGS}/${DOMAIN}
+                rm -rf ${WORK}/${DOMAIN} && rmdir ${WORK} >> /dev/null
+                rm -rf ${INSTANCE}/${DOMAIN} && rmdir ${INSTANCE} >> /dev/null
+                rm -rf ${LOGS}/${DOMAIN} && rmdir ${LOGS} >> /dev/null
                 rm -f ${NGINX}/conf/domains/${DOMAIN}
-                rm -rf ${PACKAGE}/${DOMAIN}
-                rm -rf ${SOURCE}/${DOMAIN}
+                rm -rf ${PACKAGE}/${DOMAIN} && rmdir ${PACKAGE} >> /dev/null
+                rm -rf ${SOURCE}/${DOMAIN} && rmdir ${SOURCE} >> /dev/null
                 ;;
             b) #清除代码
                 rm -rf ${SOURCE}/${DOMAIN}
