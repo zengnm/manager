@@ -43,7 +43,7 @@ get_source()
 {
     if [[ `echo ${REMOTE_URL} |grep "^svn://"|wc -l` == 0 ]];then #git
         if [[ -d ${SOURCE_HOME}/.git ]];then
-            git pull && checkout
+            cd ${SOURCE_HOME} && git pull && checkout
         else
             cd / && /bin/rm -rf ${SOURCE_HOME}
             git clone ${REMOTE_URL} ${SOURCE_HOME} && checkout
@@ -51,7 +51,7 @@ get_source()
         fi
     else #svn update或checkout
         if [[ -d ${SOURCE_HOME}/.svn ]];then
-            export LC_ALL=C && svn update && unset LC_ALL
+            export LC_ALL=C && cd ${SOURCE_HOME} && svn update && unset LC_ALL
         else
             cd / && /bin/rm -rf ${SOURCE_HOME}
             export LC_ALL=C && svn checkout ${REMOTE_URL} ${SOURCE_HOME} && unset LC_ALL
