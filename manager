@@ -182,7 +182,7 @@ case ${PARAM} in
         esac
         ;;
     "complete")
-        echo "build|tomcat|logs|cleanlogs|help|init|install|cleanup"
+        echo "build|deploy|tomcat|logs|cleanlogs|init|cleanup|help"
         ;;
     *)
         echo -e ${HELP}
