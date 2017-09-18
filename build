@@ -109,8 +109,9 @@ handle_war()
         time=`date +%Y%m%d%H%M%S`
         real_war=`echo ${WAR}|awk -F "/" '{print $NF}'`
         backup_war="${real_war%.war}_`date +%Y%m%d%H%M%S`.war"
-        mkdir -p ${PACKAGE} && cd ${PACKAGE}/${DOMAIN} && ls|egrep "${real_war%.war}_[0-9]{14}.war"|sort -r|sed -n '3,$p'|xargs rm -rf
-        mkdir -p ${DOMAIN} && cp ${WAR} ${DOMAIN}/${backup_war}
+        mkdir -p ${PACKAGE}/${DOMAIN}
+        cd ${PACKAGE}/${DOMAIN} && ls|sort -r|sed -n '3,$p'|xargs rm -rf
+        cp ${WAR} ${PACKAGE}/${DOMAIN}/${backup_war}
         echo "已备份到${PACKAGE}/${DOMAIN}目录的${backup_war}"
     fi
 }

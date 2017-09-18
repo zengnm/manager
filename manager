@@ -106,7 +106,7 @@ case ${PARAM} in
                 echo "======= deploy start! ======="
                 tomcat stop
                 rm -rf ${WORK}/${DOMAIN}
-                unzip ${PACKAGE}/${DOMAIN}/${WAR} -d ${WORK}/${DOMAIN}/
+                unzip ${PACKAGE}/${DOMAIN}/${WAR} -d ${WORK}/${DOMAIN}
                 tomcat
         esac
     ;;
