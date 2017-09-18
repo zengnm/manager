@@ -94,6 +94,10 @@ case ${PARAM} in
     ;;
     deploy)
         get_domain
+        if [[ ! -d ${PACKAGE}/${DOMAIN} || `ls ${PACKAGE}/${DOMAIN}|wc =l` == 0 ]];then
+            echo "没有war包，请构建或者上传war包到目录${PACKAGE}/${DOMAIN}"
+            exit 1
+        fi
         echo -n "从以下war包中," && SELECT `ls ${PACKAGE}/${DOMAIN}` && WAR=${SELECT}
         echo "domain = ${DOMAIN}, war = ${WAR}"
         read -p "Are you sure deploy ?(yes/no):" YES
