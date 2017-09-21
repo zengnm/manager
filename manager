@@ -94,7 +94,7 @@ case ${PARAM} in
     ;;
     deploy)
         get_domain
-        if [[ ! -d ${PACKAGE}/${DOMAIN} || `ls ${PACKAGE}/${DOMAIN}|wc =l` == 0 ]];then
+        if [[ ! -d ${PACKAGE}/${DOMAIN} || `ls ${PACKAGE}/${DOMAIN}|wc -l` == 0 ]];then
             echo "没有war包，请构建或者上传war包到目录${PACKAGE}/${DOMAIN}"
             exit 1
         fi
