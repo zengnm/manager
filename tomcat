@@ -66,6 +66,7 @@ adjust_tomcat_nginx()
     done
 }
 
+CONFIG_FILE=${CONFIG}/${DOMAIN}
 source ${CONFIG_FILE} && ${CATALINA_HOME}/bin/version.sh
 if [[ $? != 0 ]];then
     exit 1
