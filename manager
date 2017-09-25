@@ -152,10 +152,10 @@ case ${PARAM} in
         esac
         ;;
     init)
-        MANAGER_HOME=`pwd`
-        find ../ -name "*.sh"|xargs chmod u+x
-        if [ `cat ${HOME}/.bashrc|grep ":${MANAGER_HOME}"|wc -l` == 0 ]; then
-            echo -e "export PATH=\$PATH:${MANAGER_HOME}\n" ${INITSH} >> $HOME/.bashrc
+        MANAGER_ROOT=`pwd`
+        find ${MANAGER_ROOT} -name "*.sh"|xargs chmod u+x
+        if [ `cat ${HOME}/.bashrc|grep ":${MANAGER_ROOT}"|wc -l` == 0 ]; then
+            echo -e "export PATH=\$PATH:${MANAGER_ROOT}\n" ${INITSH} >> $HOME/.bashrc
             echo "已添加环境变量，请重新打开bash或者 source ~/.bashrc生效"
         fi
         echo "===== 已初始化完成 ====="
@@ -173,6 +173,7 @@ case ${PARAM} in
                 rmdir {${WORK},${INSTANCE},${LOGS},${PACKAGE},${SOURCE}} >> /dev/null
                 ;;
             b) #清除代码
+                get_domain
                 rm -rf ${SOURCE}/${DOMAIN}
                 ;;
             *)

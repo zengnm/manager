@@ -5,8 +5,8 @@ server
 {
     listen                   80;
     server_name              xxx.com;
-    access_log               nginx_home/logs/xxx.com/xxx.com_access.log main;
-    error_log                nginx_home/logs/xxx.com/xxx.com_error.log warn;
+    access_log               log_home/xxx.com_access.log main;
+    error_log                log_home/xxx.com_error.log warn;
     # chunkin on;
     # error_page 411 = @my_error;
     # location @my_error {
