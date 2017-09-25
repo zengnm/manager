@@ -40,7 +40,7 @@ nginx_new() #在domains里新增一个新的nginx配置文件
     sed -i "s#xxx.com#${DOMAIN}#g" ${NEW_NGINX_FILE}
     sed -i "s#tomcat_xxx#tomcat_${DOMAIN}#g" ${NEW_NGINX_FILE}
     sed -i "s#8001#${HTTPPORT}#g" ${NEW_NGINX_FILE}
-    sed -i "s#log_home#${LOG}/${DOMAIN}#g" ${NEW_NGINX_FILE}
+    sed -i "s#log_home#${LOGS}/${DOMAIN}#g" ${NEW_NGINX_FILE}
     sed -i "s#work#${WORK}#g" ${NEW_NGINX_FILE}
     sed -i "/server_name/s#;# ${PRE_DOMAIN}\.local;#g" ${NEW_NGINX_FILE}
 }
