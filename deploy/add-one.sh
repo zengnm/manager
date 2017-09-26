@@ -54,7 +54,7 @@ nginx_add() #配置文件中添加一行：server 127.0.0.1:{httpport}  weight=1
 ###########################################################################
 get_port
 CONFIG_FILE=${CONFIG}/${DOMAIN}
-chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE} && ${CATALINA_HOME}/bin/version.sh
+chmod u+x ${CONFIG_FILE} && source ${CONFIG_FILE} && ${CATALINA_HOME}/bin/version.sh >> /dev/null 2>&1
 if [[ $? != 0 ]];then
     exit 1
 fi
@@ -62,7 +62,6 @@ fi
 cd `dirname $0`
 mkdir -p ${WORK}/
 mkdir -p ${INSTANCE}/${DOMAIN}
-mkdir -p ${NGINX}/logs/${DOMAIN}
 mkdir -p ${NGINX}/conf/domains
 tomcat_add
 if [ -f ${NGINX}/conf/domains/${DOMAIN} ];then
